@@ -24,6 +24,8 @@ defmodule Geomancer.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:exshape, "~> 2.1.2"},
+      {:jason, "~> 1.1"},
       {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false}
     ]
   end
