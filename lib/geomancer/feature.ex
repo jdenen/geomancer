@@ -1,16 +1,17 @@
 defmodule Geomancer.Feature do
   @type t :: %__MODULE__{
-    type: String.t(),
-    properties: term(),
-    geometry: %{
-      type: String.t(),
-      coordinates: [term()]
-    }
-  }
+          type: String.t(),
+          properties: term(),
+          geometry: %{
+            type: String.t(),
+            coordinates: [term()]
+          }
+        }
 
+  @derive Jason.Encoder
   defstruct type: "Feature",
-    properties: nil,
-    geometry: nil
+            properties: nil,
+            geometry: nil
 
   @spec new(geo_type :: String.t(), props :: map(), coords :: [term()]) :: t()
   def new(geo_type, props, coords) do

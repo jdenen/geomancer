@@ -3,13 +3,16 @@ defmodule Geomancer do
   TODO Documentation for Geomancer.
   """
 
+  alias Geomancer.Shapefile
+
+  @type geo_json :: String.t()
   @type reason :: String.t()
 
-  @spec geo_json(String.t()) :: {:ok, Geomancer.Object.t()} | {:error, reason()}
+  @spec geo_json(String.t()) :: {:ok, geo_json()} | {:error, reason()}
   def geo_json(input_filepath) do
     case Path.extname(input_filepath) do
       ".zip" ->
-        Geomancer.Shapefile.geo_json(input_filepath)
+        Shapefile.geo_json(input_filepath)
 
       ext ->
         {:error, "Unsupported format: #{ext}"}
