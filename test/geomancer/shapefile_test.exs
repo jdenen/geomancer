@@ -22,6 +22,11 @@ defmodule Geomancer.ShapefileTest do
            field_length: 5,
            field_type: :numeric,
            name: "pointId"
+         },
+         %Exshape.Dbf.Column{
+           field_length: 5,
+           field_type: :numeric,
+           name: "letter"
          }
        ],
        header_byte_count: 65,
@@ -29,9 +34,9 @@ defmodule Geomancer.ShapefileTest do
        record_byte_count: 6,
        record_count: 3
      }},
-    {%Exshape.Shp.Point{x: 0.0, y: 10.0}, [1]},
-    {%Exshape.Shp.Point{x: 10.0, y: 10.0}, [2]},
-    {%Exshape.Shp.Point{x: 5.0, y: 5.0}, [3]}
+    {%Exshape.Shp.Point{x: 0.0, y: 10.0}, [1, "a"]},
+    {%Exshape.Shp.Point{x: 10.0, y: 10.0}, [2, "b"]},
+    {%Exshape.Shp.Point{x: 5.0, y: 5.0}, [3, "c"]}
   ]
 
   describe "features_from_shapes/1" do
@@ -41,19 +46,21 @@ defmodule Geomancer.ShapefileTest do
 
     test "returns a list of features when given a list of shape tuples" do
       features = Shapefile.features_from_shapes(@shapes)
+
       assert List.first(features) == %Feature{
-        type: "Feature",
-        properties: %{
-          "pointId" => 1
-        },
-        geometry: %{
-          type: "Point",
-          coordinates: [
-            0.0,
-            10.0
-          ]
-        }
-      }
+               type: "Feature",
+               properties: %{
+                 "pointId" => 1,
+                 "letter" => "a"
+               },
+               geometry: %{
+                 type: "Point",
+                 coordinates: [
+                   0.0,
+                   10.0
+                 ]
+               }
+             }
     end
   end
 end

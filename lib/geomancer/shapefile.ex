@@ -21,12 +21,12 @@ defmodule Geomancer.Shapefile do
   def features_from_shapes(shapes) do
     {_, _, features} =
       Enum.reduce(shapes, {"", [], []}, fn
-        {%Shp.Header{} = shp, %Dbf.Header{} = dbf}, {_, _cs, feats} ->
+        {%Shp.Header{} = shp, %Dbf.Header{} = dbf}, {_, _, feats} ->
           type = shp.shape_type |> Atom.to_string() |> String.capitalize()
           {type, Enum.map(dbf.columns, fn c -> c.name end), feats}
 
-      {shape, values}, {type, keys, feats} ->
-          properties = for k <- keys, v <- values, do: {k, v}, into: %{}
+        {shape, values}, {type, keys, feats} ->
+          properties = keys |> Enum.zip(values) |> Map.new
           [_ | coordinates] = Map.values(shape)
           {type, keys, [Feature.new(type, properties, coordinates) | feats]}
       end)
@@ -36,7 +36,6 @@ defmodule Geomancer.Shapefile do
 
   @spec object(features :: [Feature.t()], name :: String.t()) :: {:ok, Object.t()}
   defp object(features, name) do
-
     Object.new(name, features)
   end
 end
