@@ -40,9 +40,16 @@ defmodule GeomancerTest do
   }
 
   describe "geo_json/1" do
-    test "converts Shapefile to GeoJSON" do
+    test "converts simple Shapefile to GeoJSON" do
       assert {:ok, geo_json} = Geomancer.geo_json("test/support/point.zip")
       assert geo_json == Jason.encode!(@point_map)
+    end
+
+    test "converts more complicated Shapefile to GeoJSON" do
+      fixture_map = "test/support/Basketball-Courts.geojson" |> File.read!() |> Jason.decode!()
+      assert {:ok, geo_json} = Geomancer.geo_json("test/support/seattle_basketball_points.zip")
+      geo_map = Jason.decode!(geo_json)
+      assert geo_map == fixture_map
     end
 
     test "returns error tuple for unsupported file format" do

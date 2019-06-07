@@ -35,7 +35,7 @@ defmodule Geomancer.ShapefileTest do
        record_count: 3
      }},
     {%Exshape.Shp.Point{x: 0.0, y: 10.0}, [1, "a"]},
-    {%Exshape.Shp.Point{x: 10.0, y: 10.0}, [2, "b"]},
+    {%Exshape.Shp.Point{x: 10.0, y: 10.0}, [2, "b   "]},
     {%Exshape.Shp.Point{x: 5.0, y: 5.0}, [3, "c"]}
   ]
 
@@ -61,6 +61,11 @@ defmodule Geomancer.ShapefileTest do
                  ]
                }
              }
+    end
+
+    test "trims whitespace from DBF values" do
+      features = Shapefile.features_from_shapes(@shapes)
+      assert Enum.at(features, 1).properties["letter"] == "b"
     end
   end
 end

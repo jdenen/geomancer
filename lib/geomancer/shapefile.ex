@@ -26,7 +26,8 @@ defmodule Geomancer.Shapefile do
           {type, Enum.map(dbf.columns, fn c -> c.name end), feats}
 
         {shape, values}, {type, keys, feats} ->
-          properties = keys |> Enum.zip(values) |> Map.new
+          trimmed_values = Enum.map(values, &trim_dbf_value/1)
+          properties = keys |> Enum.zip(trimmed_values) |> Map.new
           [_ | coordinates] = Map.values(shape)
           {type, keys, [Feature.new(type, properties, coordinates) | feats]}
       end)
@@ -38,4 +39,13 @@ defmodule Geomancer.Shapefile do
   defp object(features, name) do
     Object.new(name, features)
   end
+
+  defp trim_dbf_value(value) when is_binary(value) do
+    case String.trim(value) do
+      "" -> nil
+      val -> val
+    end
+  end
+
+  defp trim_dbf_value(value), do: value
 end
