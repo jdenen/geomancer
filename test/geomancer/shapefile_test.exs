@@ -2,70 +2,31 @@ defmodule Geomancer.ShapefileTest do
   use ExUnit.Case
   alias Geomancer.{Shapefile, Feature}
 
-  @shapes [
-    {%Exshape.Shp.Header{
-       bbox: %Exshape.Shp.Bbox{
-         mmax: 0.0,
-         mmin: 0.0,
-         xmax: 10.0,
-         xmin: 0.0,
-         ymax: 10.0,
-         ymin: 5.0,
-         zmax: 0.0,
-         zmin: 0.0
-       },
-       shape_type: :point
-     },
-     %Exshape.Dbf.Header{
-       columns: [
-         %Exshape.Dbf.Column{
-           field_length: 5,
-           field_type: :numeric,
-           name: "pointId"
-         },
-         %Exshape.Dbf.Column{
-           field_length: 5,
-           field_type: :numeric,
-           name: "letter"
-         }
-       ],
-       header_byte_count: 65,
-       last_updated: {2019, 7, 4},
-       record_byte_count: 6,
-       record_count: 3
-     }},
-    {%Exshape.Shp.Point{x: 0.0, y: 10.0}, [1, "a"]},
-    {%Exshape.Shp.Point{x: 10.0, y: 10.0}, [2, "b   "]},
-    {%Exshape.Shp.Point{x: 5.0, y: 5.0}, [3, "c"]}
-  ]
+  @headers {
+    %Exshape.Shp.Header{shape_type: :foo},
+    %Exshape.Dbf.Header{columns: [%{name: "bar"}, %{name: "baz"}]}
+  }
 
   describe "features/1" do
-    test "returns empty list when given no shapes" do
+    test "handles an empty list" do
       assert Shapefile.features([]) == []
     end
 
-    test "returns a list of features when given a list of shape tuples" do
-      features = Shapefile.features(@shapes)
+    test "turns shapes into features" do
+      shapefile = [@headers, {%Exshape.Shp.Point{x: 0.0, y: 1.0}, [1, "a"]}]
+      [feature] = Shapefile.features(shapefile)
 
-      assert List.first(features) == %Feature{
+      assert feature == %Feature{
                type: "Feature",
-               properties: %{
-                 "pointId" => 1,
-                 "letter" => "a"
-               },
-               geometry: %{
-                 type: "Point",
-                 coordinates: [
-                   0.0,
-                   10.0
-                 ]
-               }
+               properties: %{"bar" => 1, "baz" => "a"},
+               geometry: %{type: "Foo", coordinates: [0.0, 1.0]}
              }
     end
 
     test "trims whitespace from DBF values" do
-      features = Shapefile.features(@shapes)
-      assert Enum.at(features, 1).properties["letter"] == "b"
+      shapefile = [@headers, {%Exshape.Shp.Point{x: 1.0, y: 2.0}, [2, "b    "]}]
+      [feature] = Shapefile.features(shapefile)
+      assert feature.properties["baz"] == "b"
     end
   end
 end
