@@ -39,13 +39,13 @@ defmodule Geomancer.ShapefileTest do
     {%Exshape.Shp.Point{x: 5.0, y: 5.0}, [3, "c"]}
   ]
 
-  describe "features_from_shapes/1" do
+  describe "features/1" do
     test "returns empty list when given no shapes" do
-      assert Shapefile.features_from_shapes([]) == []
+      assert Shapefile.features([]) == []
     end
 
     test "returns a list of features when given a list of shape tuples" do
-      features = Shapefile.features_from_shapes(@shapes)
+      features = Shapefile.features(@shapes)
 
       assert List.first(features) == %Feature{
                type: "Feature",
@@ -64,7 +64,7 @@ defmodule Geomancer.ShapefileTest do
     end
 
     test "trims whitespace from DBF values" do
-      features = Shapefile.features_from_shapes(@shapes)
+      features = Shapefile.features(@shapes)
       assert Enum.at(features, 1).properties["letter"] == "b"
     end
   end
