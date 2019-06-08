@@ -13,7 +13,7 @@ defmodule Geomancer.ShapefileTest do
     end
 
     test "turns shapes into features" do
-      shapefile = [@headers, {%Exshape.Shp.Point{x: 0.0, y: 1.0}, [1, "a"]}]
+      shapefile = [@headers, {%{x: 0.0, y: 1.0}, [1, "a"]}]
       [feature] = Shapefile.features(shapefile)
 
       assert feature == %Feature{
@@ -24,19 +24,19 @@ defmodule Geomancer.ShapefileTest do
     end
 
     test "trims whitespace from DBF values" do
-      shapefile = [@headers, {%Exshape.Shp.Point{x: 1.0, y: 2.0}, [2, "b    "]}]
+      shapefile = [@headers, {%{x: 1.0, y: 2.0}, [2, "b    "]}]
       [feature] = Shapefile.features(shapefile)
       assert feature.properties["baz"] == "b"
     end
 
     test "handles shapes-in-shapes" do
-      shape = %Exshape.Shp.Polygon{points: [[[%Exshape.Shp.Point{x: 2.0, y: 3.0}]]]}
+      shape = %{points: [[[%{x: 1.0, y: 2.0}, %{x: 3.0, y: 4.0}]]]}
       [feature] = Shapefile.features([@headers, {shape, [3, "c"]}])
 
       assert feature == %Feature{
         type: "Feature",
         properties: %{"bar" => 3, "baz" => "c"},
-        geometry: %{type: "Foo", coordinates: [[[2.0, 3.0]]]}
+        geometry: %{type: "Foo", coordinates: [[[1.0, 2.0], [3.0, 4.0]]]}
       }
     end
   end
