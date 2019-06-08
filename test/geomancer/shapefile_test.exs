@@ -28,5 +28,16 @@ defmodule Geomancer.ShapefileTest do
       [feature] = Shapefile.features(shapefile)
       assert feature.properties["baz"] == "b"
     end
+
+    test "handles shapes-in-shapes" do
+      shape = %Exshape.Shp.Polygon{points: [[[%Exshape.Shp.Point{x: 2.0, y: 3.0}]]]}
+      [feature] = Shapefile.features([@headers, {shape, [3, "c"]}])
+
+      assert feature == %Feature{
+        type: "Feature",
+        properties: %{"bar" => 3, "baz" => "c"},
+        geometry: %{type: "Foo", coordinates: [[[2.0, 3.0]]]}
+      }
+    end
   end
 end

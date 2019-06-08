@@ -35,10 +35,33 @@ defmodule Geomancer.Shapefile do
 
   defp feature_reducer({shape, prop_values}, {type, prop_keys, features}) do
     properties = parse_properties(prop_keys, prop_values)
-    [_ | coordinates] = Map.values(shape)
+    coordinates = parse_coordinates(shape)
 
     {type, prop_keys, [Feature.new(type, properties, coordinates) | features]}
   end
+
+  defp parse_coordinates(%Exshape.Shp.Point{x: x, y: y}), do: [x, y]
+  defp parse_coordinates([%Exshape.Shp.Point{} | _] = points) do
+    Enum.map(points, fn pt -> [pt.x, pt.y] end)
+  end
+
+  defp parse_coordinates(shape) when is_map(shape) do
+    [_ | coordinates] =
+      shape
+      |> Map.values()
+      |> Enum.map(&parse_coordinates/1)
+
+    Enum.reject(coordinates, &is_nil/1)
+  end
+
+  defp parse_coordinates([]), do: nil
+  defp parse_coordinates(shape) when is_list(shape) do
+    shape
+    |> Enum.map(&parse_coordinates/1)
+    |> List.first()
+  end
+
+  defp parse_coordinates(_), do: nil
 
   @spec parse_properties([String.t()], [term()]) :: map()
   defp parse_properties(keys, values) do
