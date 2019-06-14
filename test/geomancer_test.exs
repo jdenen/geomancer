@@ -3,29 +3,33 @@ defmodule GeomancerTest do
   doctest Geomancer
 
   describe "geo_json/1" do
-    test "converts Shapefile with Points to GeoJSON" do
-      fixture_map = "test/support/point.geojson" |> File.read!() |> Jason.decode!()
-      assert {:ok, geo_json} = Geomancer.geo_json("test/support/point.zip")
-      geo_map = Jason.decode!(geo_json)
+    test "converts multiple Shapefile points to FeatureCollection of multiple points" do
+      fixture_map = fixture("point")
+      geo_map = geo_map("point")
       assert geo_map == fixture_map
     end
 
-    test "converts Shapefile with Polygons to GeoJSON" do
-      fixture_map = "test/support/Campus_Boundary.geojson" |> File.read!() |> Jason.decode!()
-      assert {:ok, geo_json} = Geomancer.geo_json("test/support/Campus_Boundary.zip")
-      geo_map = Jason.decode!(geo_json)
-      assert geo_map == fixture_map
-    end
-
-    test "converts Shapefile with MultiPolygons to GeoJSON" do
-      fixture_map = "test/support/Urban_Services_Boundary.geojson" |> File.read!() |> Jason.decode!()
-      assert {:ok, geo_json} = Geomancer.geo_json("test/support/Urban_Services_Boundary.zip")
-      geo_map = Jason.decode!(geo_json)
+    test "converts multiple Shapefile polygons to FeatureCollection of multiple polygons" do
+      fixture_map = fixture("polygons")
+      geo_map = geo_map("polygons")
       assert geo_map == fixture_map
     end
 
     test "returns error tuple for unsupported file format" do
       assert {:error, "Unsupported format: .bar"} = Geomancer.geo_json("foo.bar")
     end
+  end
+
+  def geo_map(name) do
+    "test/support/#{name}.zip"
+    |> Geomancer.geo_json()
+    |> elem(1)
+    |> Jason.decode!()
+  end
+
+  def fixture(name) do
+    "test/support/#{name}.geojson"
+    |> File.read!()
+    |> Jason.decode!()
   end
 end
