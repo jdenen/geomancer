@@ -1,6 +1,5 @@
 defmodule Geomancer.Shapefile do
-  alias Geomancer.{Object, Feature}
-  alias Geomancer.Shapefile.Coordinates
+  alias Geomancer.GeoJson
   alias Exshape.{Shp, Dbf}
 
   @type geo_json :: String.t()
@@ -12,17 +11,17 @@ defmodule Geomancer.Shapefile do
 
     shapes
     |> features()
-    |> object(name)
+    |> GeoJson.new(name)
     |> Jason.encode()
   end
 
-  @spec features([tuple()]) :: [Feature.t()]
-  def features(shapefile) do
-    {_, _, features} = Enum.reduce(shapefile, {"", [], []}, &feature_reducer/2)
+  @spec features([tuple()]) :: [GeoJson.Feature.t()]
+  def features(shapes) do
+    {_, _, features} = Enum.reduce(shapes, {"", [], []}, &feature_reducer/2)
     Enum.reverse(features)
   end
 
-  @spec feature_reducer(tuple(), tuple()) :: {String.t(), [String.t()], [Feature.t()]}
+  @spec feature_reducer(tuple(), tuple()) :: {String.t(), [String.t()], [GeoJson.Feature.t()]}
   defp feature_reducer({%Shp.Header{} = shp, %Dbf.Header{} = dbf}, {_, _, features}) do
     cols = Enum.map(dbf.columns, fn c -> c.name end)
 
@@ -36,9 +35,9 @@ defmodule Geomancer.Shapefile do
 
   defp feature_reducer({shape, prop_values}, {type, prop_keys, features}) do
     properties = parse_properties(prop_keys, prop_values)
-    coordinates = Coordinates.parse(shape)
+    coordinates = parse_coordinates(shape) |> wrap()
 
-    {type, prop_keys, [Feature.new(type, properties, coordinates) | features]}
+    {type, prop_keys, [GeoJson.Feature.new(type, properties, coordinates) | features]}
   end
 
   @spec parse_properties([String.t()], [term()]) :: map()
@@ -50,12 +49,29 @@ defmodule Geomancer.Shapefile do
     |> Map.new()
   end
 
-  @spec object(features :: [Feature.t()], name :: String.t()) :: Object.t()
-  defp object(features, name) do
-    Object.new(name, features)
+  @spec parse_coordinates(term()) :: list()
+  defp parse_coordinates(%{x: x, y: y}), do: [x, y]
+
+  defp parse_coordinates(%{points: [%{x: _, y: _} | _] = points}) do
+    counter_clockwise(points)
   end
 
-  @spec trim_dbf_value(term()) :: term()
+  defp parse_coordinates(%{points: [outer | inners]}) do
+    outer_coordinates = counter_clockwise(outer)
+    [outer_coordinates | parse_coordinates(inners)]
+  end
+
+  defp parse_coordinates(points), do: Enum.map(points, &parse_coordinates/1)
+
+  defp counter_clockwise(points) do
+    points
+    |> Enum.reverse()
+    |> Enum.map(&parse_coordinates/1)
+  end
+
+  defp wrap([_x, _y] = coordinates), do: coordinates
+  defp wrap(coordinates), do: [coordinates]
+
   defp trim_dbf_value(value) when is_binary(value) do
     case String.trim(value) do
       "" -> nil
