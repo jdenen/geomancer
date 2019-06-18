@@ -7,3 +7,4 @@ erl_crash.dump
 *.ez
 geomancer-*.tar
 *.plt*
+.elixir_ls
