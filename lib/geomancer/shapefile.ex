@@ -35,7 +35,7 @@ defmodule Geomancer.Shapefile do
 
   defp feature_reducer({shape, prop_values}, {type, prop_keys, features}) do
     properties = parse_properties(prop_keys, prop_values)
-    coordinates = parse_coordinates(shape) |> wrap()
+    coordinates = parse_coordinates(shape)
 
     {type, prop_keys, [GeoJson.Feature.new(type, properties, coordinates) | features]}
   end
@@ -50,27 +50,21 @@ defmodule Geomancer.Shapefile do
   end
 
   @spec parse_coordinates(term()) :: list()
-  defp parse_coordinates(%{x: x, y: y}), do: [x, y]
+  def parse_coordinates(%{x: x, y: y}), do: [x, y]
 
-  defp parse_coordinates(%{points: [%{x: _, y: _} | _] = points}) do
-    counter_clockwise(points)
-  end
-
-  defp parse_coordinates(%{points: [outer | inners]}) do
-    outer_coordinates = counter_clockwise(outer)
-    [outer_coordinates | parse_coordinates(inners)]
-  end
-
-  defp parse_coordinates(points), do: Enum.map(points, &parse_coordinates/1)
-
-  defp counter_clockwise(points) do
-    points
-    |> Enum.reverse()
+  def parse_coordinates(%{points: [%{x: _, y: _} | _] = point}) do
+    point
+    |> Enum.map(&Enum.reverse(&1))
     |> Enum.map(&parse_coordinates/1)
   end
 
-  defp wrap([_x, _y] = coordinates), do: coordinates
-  defp wrap(coordinates), do: [coordinates]
+  def parse_coordinates(%{points: [polygon | _]}) do
+    polygon
+    |> Enum.map(&Enum.reverse(&1))
+    |> Enum.map(&parse_coordinates/1)
+  end
+
+  def parse_coordinates(points), do: Enum.map(points, &parse_coordinates/1)
 
   defp trim_dbf_value(value) when is_binary(value) do
     case String.trim(value) do
