@@ -50,21 +50,21 @@ defmodule Geomancer.Shapefile do
   end
 
   @spec parse_coordinates(term()) :: list()
-  def parse_coordinates(%{x: x, y: y}), do: [x, y]
+  defp parse_coordinates(%{x: x, y: y}), do: [x, y]
 
-  def parse_coordinates(%{points: [%{x: _, y: _} | _] = point}) do
+  defp parse_coordinates(%{points: [%{x: _, y: _} | _] = point}) do
     point
     |> Enum.map(&Enum.reverse(&1))
     |> Enum.map(&parse_coordinates/1)
   end
 
-  def parse_coordinates(%{points: [polygon | _]}) do
+  defp parse_coordinates(%{points: [polygon | _]}) do
     polygon
     |> Enum.map(&Enum.reverse(&1))
     |> Enum.map(&parse_coordinates/1)
   end
 
-  def parse_coordinates(points), do: Enum.map(points, &parse_coordinates/1)
+  defp parse_coordinates(points), do: Enum.map(points, &parse_coordinates/1)
 
   defp trim_dbf_value(value) when is_binary(value) do
     case String.trim(value) do
