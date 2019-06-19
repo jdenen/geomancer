@@ -1,4 +1,5 @@
 defmodule Geomancer.Shapefile do
+  @moduledoc false
   alias Geomancer.GeoJson
   alias Exshape.{Shp, Dbf}
 

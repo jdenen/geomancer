@@ -77,34 +77,34 @@ defmodule Geomancer.ShapefileTest do
         %{x: -1.0, y: -1.0},
         %{x: -1.0, y: -2.0},
         %{x: -2.0, y: -2.0},
-        %{x: -1.0, y: -1.0},
+        %{x: -1.0, y: -1.0}
       ]
 
       shapefile = [@polygon, {%{points: [[outer, inner]]}, [0]}]
       [feature] = Shapefile.features(shapefile)
 
       assert feature == %GeoJson.Feature{
-        type: "Feature",
-        properties: %{"foo" => 0},
-        geometry: %{
-          type: "Polygon",
-          coordinates: [
-            [
-              [0.0, 0.0],
-              [0.0, -4.0],
-              [-4.0, -4.0],
-              [-4.0, 0.0],
-              [0.0, 0.0]
-            ],
-            [
-              [-1.0, -1.0],
-              [-2.0, -2.0],
-              [-1.0, -2.0],
-              [-1.0, -1.0]
-            ]
-          ]
-        }
-      }
+               type: "Feature",
+               properties: %{"foo" => 0},
+               geometry: %{
+                 type: "Polygon",
+                 coordinates: [
+                   [
+                     [0.0, 0.0],
+                     [0.0, -4.0],
+                     [-4.0, -4.0],
+                     [-4.0, 0.0],
+                     [0.0, 0.0]
+                   ],
+                   [
+                     [-1.0, -1.0],
+                     [-2.0, -2.0],
+                     [-1.0, -2.0],
+                     [-1.0, -1.0]
+                   ]
+                 ]
+               }
+             }
     end
 
     test "trims whitespace from DBF values" do
