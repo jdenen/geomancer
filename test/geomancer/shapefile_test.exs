@@ -44,11 +44,19 @@ defmodule Geomancer.ShapefileTest do
         %{x: 1.0, y: 2.0}
       ]
 
-      shapefile = [@polygon, {%{points: [[outer]]}, [0]}]
+      bbox = %{
+        xmax: 2.0,
+        xmin: 1.0,
+        ymax: 3.0,
+        ymin: 2.0
+      }
+
+      shapefile = [@polygon, {%{points: [[outer]], bbox: bbox}, [0]}]
       [feature] = Shapefile.features(shapefile)
 
       assert feature == %GeoJson.Feature{
                type: "Feature",
+               bbox: [1.0, 2.0, 2.0, 3.0],
                properties: %{"foo" => 0},
                geometry: %{
                  type: "Polygon",
@@ -80,11 +88,19 @@ defmodule Geomancer.ShapefileTest do
         %{x: -1.0, y: -1.0}
       ]
 
-      shapefile = [@polygon, {%{points: [[outer, inner]]}, [0]}]
+      bbox = %{
+        xmax: 0.0,
+        xmin: -4.0,
+        ymax: 0.0,
+        ymin: -4.0
+      }
+
+      shapefile = [@polygon, {%{points: [[outer, inner]], bbox: bbox}, [0]}]
       [feature] = Shapefile.features(shapefile)
 
       assert feature == %GeoJson.Feature{
                type: "Feature",
+               bbox: [-4.0, -4.0, 0.0, 0.0],
                properties: %{"foo" => 0},
                geometry: %{
                  type: "Polygon",
