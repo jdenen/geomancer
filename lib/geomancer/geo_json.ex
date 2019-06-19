@@ -12,7 +12,7 @@ defmodule Geomancer.GeoJson do
     features: nil,
     name: nil
 
-  @spec new(name :: String.t(), features :: [Feature.t()]) :: t()
+  @spec new(features :: [Feature.t()], name :: String.t()) :: t()
   def new(features, name) do
     %__MODULE__{features: features, name: name}
   end
