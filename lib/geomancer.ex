@@ -1,6 +1,6 @@
 defmodule Geomancer do
   @moduledoc """
-  A library to convert between various geospacial file formats
+  A library to convert between various geospatial file formats
   """
 
   alias Geomancer.Shapefile
