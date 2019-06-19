@@ -8,7 +8,6 @@ install:
   - mix local.hex --force
   - mix deps.get
   - mix format --check-formatted
-  - mix dialyzer
   - mix credo
 script:
   - mix test
