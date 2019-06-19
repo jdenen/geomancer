@@ -28,7 +28,7 @@ defmodule Geomancer.ShapefileTest do
              }
     end
 
-    test "converts indenpendent points into features" do
+    test "converts independent points into features" do
       shapefile = [@point, {%{x: 0.0, y: 1.0}, [1, "a"]}, {%{x: 2.0, y: 3.0}, [2, "b"]}]
       [p1 | [p2 | _]] = Shapefile.features(shapefile)
 
@@ -44,7 +44,7 @@ defmodule Geomancer.ShapefileTest do
         %{x: 1.0, y: 2.0}
       ]
 
-      shapefile = [@polygon, {%{points: outer}, [0]}]
+      shapefile = [@polygon, {%{points: [[outer]]}, [0]}]
       [feature] = Shapefile.features(shapefile)
 
       assert feature == %GeoJson.Feature{
@@ -80,7 +80,7 @@ defmodule Geomancer.ShapefileTest do
         %{x: -1.0, y: -1.0},
       ]
 
-      shapefile = [@polygon, {%{points: [outer, inner]}, [0]}]
+      shapefile = [@polygon, {%{points: [[outer, inner]]}, [0]}]
       [feature] = Shapefile.features(shapefile)
 
       assert feature == %GeoJson.Feature{
@@ -98,8 +98,8 @@ defmodule Geomancer.ShapefileTest do
             ],
             [
               [-1.0, -1.0],
-              [-1.0, -2.0],
               [-2.0, -2.0],
+              [-1.0, -2.0],
               [-1.0, -1.0]
             ]
           ]

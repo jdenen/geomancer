@@ -52,15 +52,15 @@ defmodule Geomancer.Shapefile do
   @spec parse_coordinates(term()) :: list()
   defp parse_coordinates(%{x: x, y: y}), do: [x, y]
 
-  defp parse_coordinates(%{points: [%{x: _, y: _} | _] = point}) do
-    point
+  defp parse_coordinates(%{points: [%{x: _, y: _} | _] = points}) do
+    points
     |> Enum.map(&Enum.reverse(&1))
     |> Enum.map(&parse_coordinates/1)
   end
 
-  defp parse_coordinates(%{points: [polygon | _]}) do
-    polygon
-    |> Enum.map(&Enum.reverse(&1))
+  defp parse_coordinates(%{points: [points | _]}) do
+    points
+    |> Enum.map(&Enum.reverse/1)
     |> Enum.map(&parse_coordinates/1)
   end
 
