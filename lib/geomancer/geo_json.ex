@@ -4,10 +4,13 @@ defmodule Geomancer.GeoJson do
 
   @type t :: %__MODULE__{
           type: String.t(),
-          name: String.t(),
+          name: name(),
           features: [Feature.t()],
           bbox: [float()]
         }
+
+  @typep bbox :: %{xmin: float(), xmax: float(), ymin: float(), ymax: float()}
+  @typep name :: String.t()
 
   @derive Jason.Encoder
   defstruct type: "FeatureCollection",
@@ -15,9 +18,8 @@ defmodule Geomancer.GeoJson do
             name: nil,
             bbox: []
 
-  @spec new(features :: [Feature.t()], name :: String.t(), bbox :: map()) :: t()
-  def new(features, name, bbox) do
-    bounding = [bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax]
-    %__MODULE__{features: features, name: name, bbox: bounding}
+  @spec new([Feature.t()], name(), bbox()) :: t()
+  def new(features, name, %{xmin: x0, xmax: x1, ymin: y0, ymax: y1}) do
+    %__MODULE__{features: features, name: name, bbox: [x0, y0, x1, y1]}
   end
 end
