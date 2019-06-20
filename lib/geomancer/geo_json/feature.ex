@@ -16,7 +16,8 @@ defmodule Geomancer.GeoJson.Feature do
             properties: nil,
             geometry: nil
 
-  @spec new(geo_type :: String.t(), bbox :: list(float()), props :: map(), coords :: [term()]) :: t()
+  @spec new(geo_type :: String.t(), bbox :: list(float()), props :: map(), coords :: [term()]) ::
+          t()
   def new(geo_type, bbox, props, coords) do
     geo = %{type: geo_type, coordinates: coords}
     %__MODULE__{properties: props, bbox: bbox, geometry: geo}

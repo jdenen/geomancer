@@ -39,7 +39,8 @@ defmodule Geomancer.Shapefile do
     coordinates = parse_coordinates(shape)
     bounding_box = parse_bounding_box(shape)
 
-    {type, prop_keys, [GeoJson.Feature.new(type, bounding_box, properties, coordinates) | features]}
+    {type, prop_keys,
+     [GeoJson.Feature.new(type, bounding_box, properties, coordinates) | features]}
   end
 
   @spec parse_properties([String.t()], [term()]) :: map()
@@ -73,8 +74,6 @@ defmodule Geomancer.Shapefile do
   end
 
   defp parse_bounding_box(%{x: x, y: y}), do: [x, y, x, y]
-
-  defp parse_bounding_box(_), do: []
 
   defp trim_dbf_value(value) when is_binary(value) do
     case String.trim(value) do
