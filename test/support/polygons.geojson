@@ -1,5 +1,6 @@
 {
   "type": "FeatureCollection",
+  "bbox": [-110.74218749999999, 31.690781806136822, -90.8349609375, 43.068887774169625],
   "name": "polygons-polygon",
   "features": [
     {

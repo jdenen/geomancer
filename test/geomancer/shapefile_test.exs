@@ -14,12 +14,12 @@ defmodule Geomancer.ShapefileTest do
 
   describe "features/1" do
     test "handles an empty list" do
-      assert Shapefile.features([]) == []
+      assert Shapefile.features([], "", [:ignore]) == []
     end
 
     test "converts point into features" do
       shapefile = [@point, {%{x: 0.0, y: 1.0}, [1, "a"]}]
-      [feature] = Shapefile.features(shapefile)
+      [feature] = Shapefile.features(shapefile, "Point", ["bar", "baz"])
 
       assert feature == %GeoJson.Feature{
                type: "Feature",
@@ -31,7 +31,7 @@ defmodule Geomancer.ShapefileTest do
 
     test "converts independent points into features" do
       shapefile = [@point, {%{x: 0.0, y: 1.0}, [1, "a"]}, {%{x: 2.0, y: 3.0}, [2, "b"]}]
-      [p1 | [p2 | _]] = Shapefile.features(shapefile)
+      [p1 | [p2 | _]] = Shapefile.features(shapefile, "Point", ["bar", "baz"])
 
       assert p1.geometry.coordinates == [0.0, 1.0]
       assert p2.geometry.coordinates == [2.0, 3.0]
@@ -53,7 +53,7 @@ defmodule Geomancer.ShapefileTest do
       }
 
       shapefile = [@polygon, {%{points: [[outer]], bbox: bbox}, [0]}]
-      [feature] = Shapefile.features(shapefile)
+      [feature] = Shapefile.features(shapefile, "Polygon", ["foo"])
 
       assert feature == %GeoJson.Feature{
                type: "Feature",
@@ -97,7 +97,7 @@ defmodule Geomancer.ShapefileTest do
       }
 
       shapefile = [@polygon, {%{points: [[outer, inner]], bbox: bbox}, [0]}]
-      [feature] = Shapefile.features(shapefile)
+      [feature] = Shapefile.features(shapefile, "Polygon", ["foo"])
 
       assert feature == %GeoJson.Feature{
                type: "Feature",
@@ -126,7 +126,7 @@ defmodule Geomancer.ShapefileTest do
 
     test "trims whitespace from DBF values" do
       shapefile = [@point, {%{x: 1.0, y: 2.0}, [2, "b    "]}]
-      [feature] = Shapefile.features(shapefile)
+      [feature] = Shapefile.features(shapefile, "Point", ["bar", "baz"])
       assert feature.properties["baz"] == "b"
     end
   end
