@@ -9,30 +9,38 @@ defmodule Geomancer.Shapefile do
   @spec geo_json(String.t()) :: {:ok, geo_json()} | {:error, reason()}
   def geo_json(zip_path) do
     [{name, _, shapes}] = Exshape.from_zip(zip_path)
+    {type, bbox, columns} = parse_headers(shapes)
 
     shapes
-    |> features()
-    |> GeoJson.new(name)
+    |> features(type, columns)
+    |> GeoJson.new(name, bbox)
     |> Jason.encode()
   end
 
-  @spec features([tuple()]) :: [GeoJson.Feature.t()]
-  def features(shapes) do
-    {_, _, features} = Enum.reduce(shapes, {"", [], []}, &feature_reducer/2)
+  @spec features([tuple()], String.t(), [atom()]) :: [GeoJson.Feature.t()]
+  def features(shapes, type, prop_keys) do
+    {_, _, features} = Enum.reduce(shapes, {type, prop_keys, []}, &feature_reducer/2)
     Enum.reverse(features)
   end
 
-  @spec feature_reducer(tuple(), tuple()) :: {String.t(), [String.t()], [GeoJson.Feature.t()]}
-  defp feature_reducer({%Shp.Header{} = shp, %Dbf.Header{} = dbf}, {_, _, features}) do
-    cols = Enum.map(dbf.columns, fn c -> c.name end)
+  defp parse_headers(shapes) do
+    {shp, dbf} =
+      shapes
+      |> Stream.take(1)
+      |> Enum.at(0)
 
     type =
       shp.shape_type
       |> Atom.to_string()
       |> String.capitalize()
 
-    {type, cols, features}
+    cols = Enum.map(dbf.columns, fn c -> c.name end)
+
+    {type, shp.bbox, cols}
   end
+
+  @spec feature_reducer(tuple(), tuple()) :: {String.t(), [String.t()], [GeoJson.Feature.t()]}
+  defp feature_reducer({%Shp.Header{}, %Dbf.Header{}}, acc), do: acc
 
   defp feature_reducer({shape, prop_values}, {type, prop_keys, features}) do
     properties = parse_properties(prop_keys, prop_values)
