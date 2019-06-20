@@ -23,6 +23,7 @@ defmodule Geomancer.ShapefileTest do
 
       assert feature == %GeoJson.Feature{
                type: "Feature",
+               bbox: [0.0, 1.0, 0.0, 1.0],
                properties: %{"bar" => 1, "baz" => "a"},
                geometry: %{type: "Point", coordinates: [0.0, 1.0]}
              }

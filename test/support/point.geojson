@@ -4,6 +4,7 @@
   "features": [
     {
       "type": "Feature",
+      "bbox": [10.0, 10.0, 10.0, 10.0],
       "properties": {
         "point_ID": null
       },
@@ -17,6 +18,7 @@
     },
     {
       "type": "Feature",
+      "bbox": [5.0, 5.0, 5.0, 5.0],
       "properties": {
         "point_ID": null
       },
@@ -30,6 +32,7 @@
     },
     {
       "type": "Feature",
+      "bbox": [0.0, 10.0, 0.0, 10.0],
       "properties": {
         "point_ID": null
       },
