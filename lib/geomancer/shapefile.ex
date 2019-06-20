@@ -37,8 +37,10 @@ defmodule Geomancer.Shapefile do
   defp feature_reducer({shape, prop_values}, {type, prop_keys, features}) do
     properties = parse_properties(prop_keys, prop_values)
     coordinates = parse_coordinates(shape)
+    bounding_box = parse_bounding_box(shape)
 
-    {type, prop_keys, [GeoJson.Feature.new(type, properties, coordinates) | features]}
+    {type, prop_keys,
+     [GeoJson.Feature.new(type, bounding_box, properties, coordinates) | features]}
   end
 
   @spec parse_properties([String.t()], [term()]) :: map()
@@ -66,6 +68,12 @@ defmodule Geomancer.Shapefile do
   end
 
   defp parse_coordinates(points), do: Enum.map(points, &parse_coordinates/1)
+
+  defp parse_bounding_box(%{bbox: %{xmin: xmin, ymin: ymin, xmax: xmax, ymax: ymax}}) do
+    [xmin, ymin, xmax, ymax]
+  end
+
+  defp parse_bounding_box(%{x: x, y: y}), do: [x, y, x, y]
 
   defp trim_dbf_value(value) when is_binary(value) do
     case String.trim(value) do
