@@ -50,7 +50,7 @@ defmodule Geomancer.Shapefile do
   end
 
   @impl Geomancer
-  def from(_) do
+  def convert(_) do
     {:error, "Conversion to Shapefile is currently unsupported"}
   end
 

@@ -2,13 +2,13 @@ defmodule Geomancer.GeoJsonTest do
   use ExUnit.Case
   doctest Geomancer.GeoJson
 
-  describe "from/1" do
+  describe "convert/1" do
     test "converts Shapefile points to valid GeoJson" do
       fixture_map = fixture("point")
 
       converted_map =
         "test/support/point.zip"
-        |> Geomancer.GeoJson.from()
+        |> Geomancer.GeoJson.convert()
         |> elem(1)
         |> Jason.decode!()
 
@@ -20,7 +20,7 @@ defmodule Geomancer.GeoJsonTest do
 
       converted_map =
         "test/support/polygons.zip"
-        |> Geomancer.GeoJson.from()
+        |> Geomancer.GeoJson.convert()
         |> elem(1)
         |> Jason.decode!()
 
@@ -28,7 +28,7 @@ defmodule Geomancer.GeoJsonTest do
     end
 
     test "returns error tuple for unsupported file formats" do
-      assert {:error, "Unsupported format: .bar"} = Geomancer.GeoJson.from("foo.bar")
+      assert {:error, "Unsupported format: .bar"} = Geomancer.GeoJson.convert("foo.bar")
     end
   end
 

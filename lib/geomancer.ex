@@ -6,7 +6,7 @@ defmodule Geomancer do
   @type reason() :: String.t()
   @type geo_struct() :: struct | map
 
-  @callback from(input_path) :: {:ok, conversion} | {:error, reason}
+  @callback convert(input_path) :: {:ok, conversion} | {:error, reason}
   @callback read(input_path) :: {:ok, geo_struct} | {:error, reason}
 
   defmacro __using__(_) do
@@ -15,5 +15,5 @@ defmodule Geomancer do
     end
   end
 
-  defdelegate geo_json(path), to: Geomancer.GeoJson, as: :from
+  defdelegate geo_json(path), to: Geomancer.GeoJson, as: :convert
 end

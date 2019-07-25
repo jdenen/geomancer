@@ -26,7 +26,7 @@ defmodule Geomancer.GeoJson do
   def new({:error, _} = error), do: error
 
   @impl Geomancer
-  def from(input_path) do
+  def convert(input_path) do
     case Path.extname(input_path) do
       ".zip" ->
         input_path
