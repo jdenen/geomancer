@@ -1,5 +1,6 @@
 defmodule Geomancer.GeoJson.Feature do
   @moduledoc false
+
   @type t :: %__MODULE__{
           type: String.t(),
           bbox: list(float()),
