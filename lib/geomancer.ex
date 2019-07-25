@@ -1,7 +1,5 @@
 defmodule Geomancer do
-  @moduledoc """
-  A behaviour to convert geospatial data from one format to another.
-  """
+  @moduledoc false
 
   @type input_path() :: String.t()
   @type conversion() :: String.t()
@@ -16,4 +14,6 @@ defmodule Geomancer do
       @behaviour Geomancer
     end
   end
+
+  defdelegate geo_json(path), to: Geomancer.GeoJson, as: :from
 end
