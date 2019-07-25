@@ -8,9 +8,8 @@ defmodule Geomancer.MixProject do
       elixir: "~> 1.8",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      dialyzer: [
-        plt_file: {:no_warn, "plt/dialyzer.plt"}
-      ]
+      aliases: aliases(),
+      dialyzer: [plt_file: {:no_warn, "plt/dialyzer.plt"}]
     ]
   end
 
@@ -30,5 +29,9 @@ defmodule Geomancer.MixProject do
       {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false},
       {:placebo, "~> 1.2", only: [:dev, :test]}
     ]
+  end
+
+  defp aliases() do
+    [verify: ["dialyzer", "credo", "format --check-formatted"]]
   end
 end
