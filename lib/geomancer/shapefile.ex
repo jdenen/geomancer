@@ -50,9 +50,7 @@ defmodule Geomancer.Shapefile do
   end
 
   @impl Geomancer
-  def convert(_) do
-    {:error, "Conversion to Shapefile is currently unsupported"}
-  end
+  def format(), do: "Shapefile"
 
   defp parse_headers(shapes) do
     {shp, dbf} =

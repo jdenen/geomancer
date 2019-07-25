@@ -4,7 +4,7 @@ defmodule Geomancer.GeoJson.FeatureSet do
 
   @type t() :: [Feature.t()]
 
-  @spec reduce([struct()], keyword()) :: [t()]
+  @spec reduce([Geomancer.geo_struct()], keyword()) :: t()
   def reduce(geometry, opts \\ []) do
     type = Keyword.get(opts, :type, "Point")
     keys = Keyword.get(opts, :properties, [])
@@ -24,10 +24,9 @@ defmodule Geomancer.GeoJson.FeatureSet do
   end
 
   defp parse_properties(keys, values) do
-    values
-    |> Enum.map(&trim_dbf_value/1)
-    |> Enum.zip(keys)
-    |> Enum.map(fn {val, key} -> {key, val} end)
+    keys
+    |> Enum.zip(values)
+    |> Enum.map(fn {key, val} -> {key, trim(val)} end)
     |> Map.new()
   end
 
@@ -53,12 +52,12 @@ defmodule Geomancer.GeoJson.FeatureSet do
 
   defp parse_bounding_box(%{x: x, y: y}), do: [x, y, x, y]
 
-  defp trim_dbf_value(value) when is_binary(value) do
+  defp trim(value) when is_binary(value) do
     case String.trim(value) do
       "" -> nil
       val -> val
     end
   end
 
-  defp trim_dbf_value(value), do: value
+  defp trim(value), do: value
 end
