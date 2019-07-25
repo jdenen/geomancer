@@ -1,133 +1,42 @@
 defmodule Geomancer.ShapefileTest do
   use ExUnit.Case
-  alias Geomancer.{Shapefile, GeoJson}
+  use Placebo
+  doctest Geomancer.Shapefile
+
+  @bbox %{a: "a", b: "b", c: "c"}
 
   @point {
-    %Exshape.Shp.Header{shape_type: :point},
+    %Exshape.Shp.Header{shape_type: :point, bbox: @bbox},
     %Exshape.Dbf.Header{columns: [%{name: "bar"}, %{name: "baz"}]}
   }
 
-  @polygon {
-    %Exshape.Shp.Header{shape_type: :polygon},
-    %Exshape.Dbf.Header{columns: [%{name: "foo"}]}
-  }
+  describe "read/1" do
+    test "returns ok tuple with structued Shapefile data" do
+      shape = {%{x: 0.0, y: 1.0}, [1, "a"]}
 
-  describe "features/1" do
-    test "handles an empty list" do
-      assert Shapefile.features([], "", [:ignore]) == []
+      allow Exshape.from_zip(any()), return: [{"test_name", "_", [@point, shape]}]
+      expected = expected("test_name", "Point", @bbox, [@point, shape], ["bar", "baz"])
+
+      assert {:ok, actual} = Geomancer.Shapefile.read("ignore.zip")
+      assert actual == expected
     end
 
-    test "converts point into features" do
-      shapefile = [@point, {%{x: 0.0, y: 1.0}, [1, "a"]}]
-      [feature] = Shapefile.features(shapefile, "Point", ["bar", "baz"])
+    test "returns error tuple with reason if Shapefile can't be parsed" do
+      assert {:error, "Cannot parse Shapefile 'foo.zip': enoent"} =
+               Geomancer.Shapefile.read("foo.zip")
 
-      assert feature == %GeoJson.Feature{
-               type: "Feature",
-               bbox: [0.0, 1.0, 0.0, 1.0],
-               properties: %{"bar" => 1, "baz" => "a"},
-               geometry: %{type: "Point", coordinates: [0.0, 1.0]}
-             }
+      assert {:error, "Cannot parse Shapefile 'test/support/point.geojson': einval"} =
+               Geomancer.Shapefile.read("test/support/point.geojson")
     end
+  end
 
-    test "converts independent points into features" do
-      shapefile = [@point, {%{x: 0.0, y: 1.0}, [1, "a"]}, {%{x: 2.0, y: 3.0}, [2, "b"]}]
-      [p1 | [p2 | _]] = Shapefile.features(shapefile, "Point", ["bar", "baz"])
-
-      assert p1.geometry.coordinates == [0.0, 1.0]
-      assert p2.geometry.coordinates == [2.0, 3.0]
-    end
-
-    test "converts a polygon into features" do
-      outer = [
-        %{x: 1.0, y: 2.0},
-        %{x: 2.0, y: 2.0},
-        %{x: 2.0, y: 3.0},
-        %{x: 1.0, y: 2.0}
-      ]
-
-      bbox = %{
-        xmax: 2.0,
-        xmin: 1.0,
-        ymax: 3.0,
-        ymin: 2.0
-      }
-
-      shapefile = [@polygon, {%{points: [[outer]], bbox: bbox}, [0]}]
-      [feature] = Shapefile.features(shapefile, "Polygon", ["foo"])
-
-      assert feature == %GeoJson.Feature{
-               type: "Feature",
-               bbox: [1.0, 2.0, 2.0, 3.0],
-               properties: %{"foo" => 0},
-               geometry: %{
-                 type: "Polygon",
-                 coordinates: [
-                   [
-                     [1.0, 2.0],
-                     [2.0, 3.0],
-                     [2.0, 2.0],
-                     [1.0, 2.0]
-                   ]
-                 ]
-               }
-             }
-    end
-
-    test "converts a polygon with a hole into features" do
-      outer = [
-        %{x: 0.0, y: 0.0},
-        %{x: -4.0, y: 0.0},
-        %{x: -4.0, y: -4.0},
-        %{x: 0.0, y: -4.0},
-        %{x: 0.0, y: 0.0}
-      ]
-
-      inner = [
-        %{x: -1.0, y: -1.0},
-        %{x: -1.0, y: -2.0},
-        %{x: -2.0, y: -2.0},
-        %{x: -1.0, y: -1.0}
-      ]
-
-      bbox = %{
-        xmax: 0.0,
-        xmin: -4.0,
-        ymax: 0.0,
-        ymin: -4.0
-      }
-
-      shapefile = [@polygon, {%{points: [[outer, inner]], bbox: bbox}, [0]}]
-      [feature] = Shapefile.features(shapefile, "Polygon", ["foo"])
-
-      assert feature == %GeoJson.Feature{
-               type: "Feature",
-               bbox: [-4.0, -4.0, 0.0, 0.0],
-               properties: %{"foo" => 0},
-               geometry: %{
-                 type: "Polygon",
-                 coordinates: [
-                   [
-                     [0.0, 0.0],
-                     [0.0, -4.0],
-                     [-4.0, -4.0],
-                     [-4.0, 0.0],
-                     [0.0, 0.0]
-                   ],
-                   [
-                     [-1.0, -1.0],
-                     [-2.0, -2.0],
-                     [-1.0, -2.0],
-                     [-1.0, -1.0]
-                   ]
-                 ]
-               }
-             }
-    end
-
-    test "trims whitespace from DBF values" do
-      shapefile = [@point, {%{x: 1.0, y: 2.0}, [2, "b    "]}]
-      [feature] = Shapefile.features(shapefile, "Point", ["bar", "baz"])
-      assert feature.properties["baz"] == "b"
-    end
+  defp expected(name, type, bbox, shp, dbf) do
+    %Geomancer.Shapefile{
+      name: name,
+      type: type,
+      bbox: bbox,
+      shp: shp,
+      dbf: dbf
+    }
   end
 end
