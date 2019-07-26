@@ -2,44 +2,33 @@ defmodule Geomancer.Shapefile do
   @moduledoc false
   use Geomancer
 
-  @type column :: String.t()
-  @type shape ::
-          Exshape.Shp.Point
-          | Exshape.Shp.PointM
-          | Exshape.Shp.PointZ
-          | Exshape.Shp.Multipoint
-          | Exshape.Shp.MultipointM
-          | Exshape.Shp.MultipointZ
-          | Exshape.Shp.Polyline
-          | Exshape.Shp.PolylineM
-          | Exshape.Shp.PolylineZ
-          | Exshape.Shp.Polygon
-          | Exshape.Shp.PolygonM
-          | Exshape.Shp.PolygonZ
+  defstruct [:name, :type, :bbox, :dbf, :geometry]
+
+  @type column_name() :: String.t()
+  @type column_type() :: atom()
+  @type column_length() :: integer()
+  @type geometry() :: %{
+          required(:values) => [any()],
+          optional(:points) => [any()],
+          optional(:x) => float(),
+          optional(:y) => float(),
+          optional(:bbox) => [float()]
+        }
 
   @type t :: %__MODULE__{
           name: String.t(),
           type: String.t(),
-          bbox: map(),
-          shp: [shape],
-          dbf: [column]
+          bbox: [float()],
+          dbf: [{column_name(), column_type(), column_length()}],
+          geometry: [geometry()]
         }
-
-  defstruct [:name, :type, :bbox, :shp, :dbf]
 
   @impl Geomancer
   def read(input_path) do
     with [{name, _, shapes}] <- Exshape.from_zip(input_path),
-         {type, bbox, columns} <- parse_headers(shapes) do
-      struct = %__MODULE__{
-        name: name,
-        type: type,
-        bbox: bbox,
-        shp: shapes,
-        dbf: columns
-      }
-
-      {:ok, struct}
+         {type, bbox, columns} <- parse_headers(shapes),
+         geometries <- parse_geometry(shapes) do
+      new(name, type, bbox, columns, geometries)
     else
       {:error, reason} ->
         {:error, "Cannot parse Shapefile '#{input_path}': #{reason}"}
@@ -52,8 +41,42 @@ defmodule Geomancer.Shapefile do
   @impl Geomancer
   def format(), do: "Shapefile"
 
+  defp parse_geometry(shapes) do
+    shapes
+    |> Enum.reduce([], &shape_reducer/2)
+    |> Enum.reverse()
+  end
+
+  defp shape_reducer({%{x: x, y: y}, values}, acc) do
+    [%{x: x, y: y, values: values} | acc]
+  end
+
+  defp shape_reducer({%{bbox: bbox, points: points}, values}, acc) do
+    map = %{
+      bbox: [bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax],
+      points: points,
+      values: values
+    }
+
+    [map | acc]
+  end
+
+  defp shape_reducer(_, acc), do: acc
+
+  defp new(name, type, bbox, dbf, geometry) do
+    struct = %__MODULE__{
+      name: name,
+      type: type,
+      bbox: bbox,
+      dbf: dbf,
+      geometry: geometry
+    }
+
+    {:ok, struct}
+  end
+
   defp parse_headers(shapes) do
-    {shp, dbf} =
+    {%{bbox: bbox} = shp, dbf} =
       shapes
       |> Stream.take(1)
       |> Enum.at(0)
@@ -63,8 +86,8 @@ defmodule Geomancer.Shapefile do
       |> Atom.to_string()
       |> String.capitalize()
 
-    cols = Enum.map(dbf.columns, fn c -> c.name end)
+    cols = Enum.map(dbf.columns, fn c -> {c.name, c.field_type, c.field_length} end)
 
-    {type, shp.bbox, cols}
+    {type, [bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax], cols}
   end
 end

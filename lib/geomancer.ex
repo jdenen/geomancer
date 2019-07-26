@@ -5,10 +5,10 @@ defmodule Geomancer do
   @type conversion() :: String.t()
   @type reason() :: String.t()
   @type geo_json() :: String.t()
-  @type geo_struct() :: geo_json() | Geomancer.Shapefile.t()
+  @type geo_struct() :: Geomancer.Shapefile.t()
 
-  @callback convert(input_path) :: {:ok, conversion} | {:error, reason}
-  @callback read(input_path) :: {:ok, geo_struct} | {:error, reason}
+  @callback convert(input_path()) :: {:ok, conversion()} | {:error, reason()}
+  @callback read(input_path()) :: {:ok, geo_struct() | geo_json()} | {:error, reason()}
   @callback format() :: String.t()
 
   defmacro __using__(_) do

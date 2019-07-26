@@ -4,23 +4,21 @@ defmodule Geomancer.GeoJson.FeatureSet do
 
   @type t() :: [Feature.t()]
 
-  @spec reduce([Geomancer.geo_struct()], keyword()) :: t()
-  def reduce(geometry, opts \\ []) do
-    type = Keyword.get(opts, :type, "Point")
-    keys = Keyword.get(opts, :properties, [])
-
-    {features, _, _} = Enum.reduce(geometry, {[], type, keys}, &feature_reducer/2)
+  @spec reduce(Geomancer.geo_struct()) :: t()
+  def reduce(source) do
+    {features, _} = Enum.reduce(source.geometry, {[], source}, &feature_reducer/2)
     Enum.reverse(features)
   end
 
-  defp feature_reducer({%Exshape.Shp.Header{}, _}, acc), do: acc
+  defp feature_reducer(%{values: values} = shape, {acc, %Geomancer.Shapefile{} = source}) do
+    keys = Enum.map(source.dbf, fn {name, _, _} -> name end)
 
-  defp feature_reducer({shape, values}, {features, type, keys}) do
     props = parse_properties(keys, values)
     coords = parse_coordinates(shape)
-    bbox = parse_bounding_box(shape)
+    bbox = parse_bbox(shape)
 
-    {[Feature.new(type, bbox, props, coords) | features], type, keys}
+    new_acc = [Feature.new(source.type, bbox, props, coords) | acc]
+    {new_acc, source}
   end
 
   defp parse_properties(keys, values) do
@@ -46,12 +44,6 @@ defmodule Geomancer.GeoJson.FeatureSet do
 
   defp parse_coordinates(points), do: Enum.map(points, &parse_coordinates/1)
 
-  defp parse_bounding_box(%{bbox: %{xmin: xmin, ymin: ymin, xmax: xmax, ymax: ymax}}) do
-    [xmin, ymin, xmax, ymax]
-  end
-
-  defp parse_bounding_box(%{x: x, y: y}), do: [x, y, x, y]
-
   defp trim(value) when is_binary(value) do
     case String.trim(value) do
       "" -> nil
@@ -60,4 +52,8 @@ defmodule Geomancer.GeoJson.FeatureSet do
   end
 
   defp trim(value), do: value
+
+  defp parse_bbox(%{bbox: bbox}), do: bbox
+  defp parse_bbox(%{x: x, y: y}), do: [x, y, x, y]
+  defp parse_bbox(_), do: []
 end

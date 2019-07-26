@@ -41,19 +41,19 @@ defmodule Geomancer.GeoJson do
   @impl Geomancer
   def format(), do: "GeoJSON"
 
-  @spec to_geo_json({:ok, struct()} | {:error, String.t()}) :: {:ok, geo_json()} | {:error, String.t()}
-  defp to_geo_json({:ok, %Geomancer.Shapefile{} = shapefile}) do
-    shapefile
+  @spec to_geo_json({:ok, struct()} | {:error, String.t()}) ::
+          {:ok, geo_json()} | {:error, String.t()}
+  defp to_geo_json({:ok, source}) do
+    source
     |> new()
     |> Jason.encode()
   end
 
   defp to_geo_json({:error, _} = error), do: error
 
-  @spec new(%Geomancer.Shapefile{}) :: t()
-  defp new(%Geomancer.Shapefile{bbox: bbox} = shapefile) do
-    features = FeatureSet.reduce(shapefile.shp, type: shapefile.type, properties: shapefile.dbf)
-    bounding = [bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax]
-    %__MODULE__{features: features, name: shapefile.name, bbox: bounding}
+  @spec new(Geomancer.geo_struct()) :: t()
+  defp new(%{bbox: bbox} = source) do
+    features = FeatureSet.reduce(source)
+    %__MODULE__{features: features, name: source.name, bbox: bbox}
   end
 end

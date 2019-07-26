@@ -2,22 +2,39 @@ defmodule Geomancer.ShapefileTest do
   use ExUnit.Case
   use Placebo
   doctest Geomancer.Shapefile
+  alias Geomancer.Shapefile
 
-  @bbox %{a: "a", b: "b", c: "c"}
+  @bbox %{xmin: "x1", xmax: "x2", ymin: "y1", ymax: "y2"}
 
   @point {
     %Exshape.Shp.Header{shape_type: :point, bbox: @bbox},
-    %Exshape.Dbf.Header{columns: [%{name: "bar"}, %{name: "baz"}]}
+    %Exshape.Dbf.Header{
+      columns: [
+        %{name: "bar", field_length: 1, field_type: :numeric},
+        %{name: "baz", field_length: 2, field_type: :string}
+      ]
+    }
   }
 
   describe "read/1" do
     test "returns ok tuple with structued Shapefile data" do
-      shape = {%{x: 0.0, y: 1.0}, [1, "a"]}
+      pt1 = {%{x: 0.0, y: 1.0}, [1, "a"]}
+      pt2 = {%{x: 2.0, y: 3.0}, [2, "b"]}
 
-      allow Exshape.from_zip(any()), return: [{"test_name", "_", [@point, shape]}]
-      expected = expected("test_name", "Point", @bbox, [@point, shape], ["bar", "baz"])
+      allow Exshape.from_zip(any()), return: [{"test_name", "_", [@point, pt1, pt2]}]
 
-      assert {:ok, actual} = Geomancer.Shapefile.read("ignore.zip")
+      expected = %Shapefile{
+        name: "test_name",
+        type: "Point",
+        bbox: ["x1", "y1", "x2", "y2"],
+        dbf: [{"bar", :numeric, 1}, {"baz", :string, 2}],
+        geometry: [
+          %{values: [1, "a"], x: 0.0, y: 1.0},
+          %{values: [2, "b"], x: 2.0, y: 3.0}
+        ]
+      }
+
+      assert {:ok, actual} = Shapefile.read("ignore.zip")
       assert actual == expected
     end
 
@@ -33,17 +50,7 @@ defmodule Geomancer.ShapefileTest do
   describe "convert/1" do
     test "is currently unsupported" do
       assert {:error, "Conversion to Shapefile is unsupported"} =
-        Geomancer.Shapefile.convert("foo.bar")
+               Geomancer.Shapefile.convert("foo.bar")
     end
-  end
-
-  defp expected(name, type, bbox, shp, dbf) do
-    %Geomancer.Shapefile{
-      name: name,
-      type: type,
-      bbox: bbox,
-      shp: shp,
-      dbf: dbf
-    }
   end
 end
