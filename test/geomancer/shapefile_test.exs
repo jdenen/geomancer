@@ -25,7 +25,7 @@ defmodule Geomancer.ShapefileTest do
 
       expected = %Shapefile{
         name: "test_name",
-        type: "Point",
+        type: :point,
         bbox: ["x1", "y1", "x2", "y2"],
         dbf: [{"bar", :numeric, 1}, {"baz", :string, 2}],
         geometry: [

@@ -81,13 +81,8 @@ defmodule Geomancer.Shapefile do
       |> Stream.take(1)
       |> Enum.at(0)
 
-    type =
-      shp.shape_type
-      |> Atom.to_string()
-      |> String.capitalize()
-
     cols = Enum.map(dbf.columns, fn c -> {c.name, c.field_type, c.field_length} end)
 
-    {type, [bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax], cols}
+    {shp.shape_type, [bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax], cols}
   end
 end
