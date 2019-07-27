@@ -30,19 +30,23 @@ defmodule Geomancer.GeoJson.FeatureSet do
 
   defp parse_coordinates(%{x: x, y: y}), do: [x, y]
 
-  defp parse_coordinates(%{points: [%{x: _, y: _} | _] = points}) do
-    points
+  defp parse_coordinates(%{points: [%{x: _, y: _} | _] = pts}) do
+    pts
     |> Enum.map(&Enum.reverse(&1))
     |> Enum.map(&parse_coordinates/1)
   end
 
-  defp parse_coordinates(%{points: [points | _]}) do
-    points
+  defp parse_coordinates(%{points: [[%{x: _, y: _} | _] = pts | _]}) do
+    Enum.map(pts, &parse_coordinates/1)
+  end
+
+  defp parse_coordinates(%{points: [[x | _xs] = pts | _]}) when is_list(x) do
+    pts
     |> Enum.map(&Enum.reverse/1)
     |> Enum.map(&parse_coordinates/1)
   end
 
-  defp parse_coordinates(points), do: Enum.map(points, &parse_coordinates/1)
+  defp parse_coordinates(pts), do: Enum.map(pts, &parse_coordinates/1)
 
   defp trim(value) when is_binary(value) do
     case String.trim(value) do
