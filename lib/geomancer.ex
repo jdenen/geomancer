@@ -1,21 +1,31 @@
 defmodule Geomancer do
-  @moduledoc """
-  A library to convert between various geospatial file formats
-  """
+  @moduledoc false
 
-  alias Geomancer.Shapefile
+  @type input_path() :: String.t()
+  @type conversion() :: String.t()
+  @type reason() :: String.t()
+  @type geo_json() :: String.t()
+  @type geo_struct() :: Geomancer.Shapefile.t()
 
-  @type geo_json :: String.t()
-  @type reason :: String.t()
+  @callback convert(input_path()) :: {:ok, conversion()} | {:error, reason()}
+  @callback read(input_path()) :: {:ok, geo_struct() | geo_json()} | {:error, reason()}
+  @callback format() :: String.t()
 
-  @spec geo_json(String.t()) :: {:ok, geo_json()} | {:error, reason()}
-  def geo_json(input_filepath) do
-    case Path.extname(input_filepath) do
-      ".zip" ->
-        Shapefile.geo_json(input_filepath)
+  defmacro __using__(_) do
+    quote do
+      @behaviour Geomancer
 
-      ext ->
-        {:error, "Unsupported format: #{ext}"}
+      def convert(_) do
+        {:error, "Conversion to #{format()} is unsupported"}
+      end
+
+      def read(_) do
+        {:error, "Reading #{format()} is unsupported"}
+      end
+
+      defoverridable convert: 1, read: 1
     end
   end
+
+  defdelegate geo_json(path), to: Geomancer.GeoJson, as: :convert
 end

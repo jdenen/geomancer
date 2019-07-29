@@ -1,11 +1,13 @@
 defmodule Geomancer.GeoJson do
   @moduledoc false
-  alias Geomancer.GeoJson.Feature
+  use Geomancer
+  alias Geomancer.GeoJson.FeatureSet
 
+  @type geo_json :: String.t()
   @type t :: %__MODULE__{
           type: String.t(),
           name: String.t(),
-          features: [Feature.t()],
+          features: FeatureSet.t(),
           bbox: [float()]
         }
 
@@ -15,9 +17,43 @@ defmodule Geomancer.GeoJson do
             name: nil,
             bbox: []
 
-  @spec new(features :: [Feature.t()], name :: String.t(), bbox :: map()) :: t()
-  def new(features, name, bbox) do
-    bounding = [bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax]
-    %__MODULE__{features: features, name: name, bbox: bounding}
+  @impl Geomancer
+  def convert(input_path) do
+    case Path.extname(input_path) do
+      ".zip" ->
+        input_path
+        |> Geomancer.Shapefile.read()
+        |> to_geo_json()
+
+      ext ->
+        {:error, "Unsupported format: #{ext}"}
+    end
+  end
+
+  @impl Geomancer
+  def read(input_path) do
+    case File.read(input_path) do
+      {:ok, contents} -> Jason.decode(contents)
+      {:error, reason} -> {:error, "Cannot open file '#{input_path}': #{reason}"}
+    end
+  end
+
+  @impl Geomancer
+  def format(), do: "GeoJSON"
+
+  @spec to_geo_json({:ok, struct()} | {:error, String.t()}) ::
+          {:ok, geo_json()} | {:error, String.t()}
+  defp to_geo_json({:ok, source}) do
+    source
+    |> new()
+    |> Jason.encode()
+  end
+
+  defp to_geo_json({:error, _} = error), do: error
+
+  @spec new(Geomancer.geo_struct()) :: t()
+  defp new(%{bbox: bbox} = source) do
+    features = FeatureSet.reduce(source)
+    %__MODULE__{features: features, name: source.name, bbox: bbox}
   end
 end
