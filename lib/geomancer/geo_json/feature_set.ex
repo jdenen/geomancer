@@ -4,21 +4,19 @@ defmodule Geomancer.GeoJson.FeatureSet do
 
   @type t() :: [Feature.t()]
 
-  @spec reduce(Geomancer.geo_struct()) :: t()
-  def reduce(source) do
-    {features, _} = Enum.reduce(source.geometry, {[], source}, &feature_reducer/2)
-    Enum.reverse(features)
+  @spec map(Geomancer.geo_struct()) :: Enum.t()
+  def map(source) do
+    Stream.map(source.geometry, &feature_mapper(&1, source))
   end
 
-  defp feature_reducer(%{values: values} = shape, {acc, %Geomancer.Shapefile{} = source}) do
+  defp feature_mapper(%{values: values} = shape, %Geomancer.Shapefile{} = source) do
     keys = Enum.map(source.dbf, fn {name, _, _} -> name end)
 
     props = parse_properties(keys, values)
     coords = parse_coordinates(shape)
     bbox = parse_bbox(shape)
 
-    new_acc = [Feature.new(source.type, bbox, props, coords) | acc]
-    {new_acc, source}
+    Feature.new(source.type, bbox, props, coords)
   end
 
   defp parse_properties(keys, values) do

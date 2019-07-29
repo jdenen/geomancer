@@ -53,7 +53,11 @@ defmodule Geomancer.GeoJson do
 
   @spec new(Geomancer.geo_struct()) :: t()
   defp new(%{bbox: bbox} = source) do
-    features = FeatureSet.reduce(source)
+    features =
+      source
+      |> FeatureSet.map()
+      |> Enum.to_list()
+
     %__MODULE__{features: features, name: source.name, bbox: bbox}
   end
 end
