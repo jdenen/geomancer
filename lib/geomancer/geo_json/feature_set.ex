@@ -4,21 +4,19 @@ defmodule Geomancer.GeoJson.FeatureSet do
 
   @type t() :: [Feature.t()]
 
-  @spec reduce(Geomancer.geo_struct()) :: t()
-  def reduce(source) do
-    {features, _} = Enum.reduce(source.geometry, {[], source}, &feature_reducer/2)
-    Enum.reverse(features)
+  @spec map(Geomancer.geo_struct()) :: Enum.t()
+  def map(source) do
+    Stream.map(source.geometry, &feature_mapper(&1, source))
   end
 
-  defp feature_reducer(%{values: values} = shape, {acc, %Geomancer.Shapefile{} = source}) do
+  defp feature_mapper(%{values: values} = shape, %Geomancer.Shapefile{} = source) do
     keys = Enum.map(source.dbf, fn {name, _, _} -> name end)
 
     props = parse_properties(keys, values)
     coords = parse_coordinates(shape)
     bbox = parse_bbox(shape)
 
-    new_acc = [Feature.new(source.type, bbox, props, coords) | acc]
-    {new_acc, source}
+    Feature.new(source.type, bbox, props, coords)
   end
 
   defp parse_properties(keys, values) do
@@ -30,19 +28,23 @@ defmodule Geomancer.GeoJson.FeatureSet do
 
   defp parse_coordinates(%{x: x, y: y}), do: [x, y]
 
-  defp parse_coordinates(%{points: [%{x: _, y: _} | _] = points}) do
-    points
+  defp parse_coordinates(%{points: [%{x: _, y: _} | _] = pts}) do
+    pts
     |> Enum.map(&Enum.reverse(&1))
     |> Enum.map(&parse_coordinates/1)
   end
 
-  defp parse_coordinates(%{points: [points | _]}) do
-    points
+  defp parse_coordinates(%{points: [[%{x: _, y: _} | _] = pts | _]}) do
+    Enum.map(pts, &parse_coordinates/1)
+  end
+
+  defp parse_coordinates(%{points: [[x | _xs] = pts | _]}) when is_list(x) do
+    pts
     |> Enum.map(&Enum.reverse/1)
     |> Enum.map(&parse_coordinates/1)
   end
 
-  defp parse_coordinates(points), do: Enum.map(points, &parse_coordinates/1)
+  defp parse_coordinates(pts), do: Enum.map(pts, &parse_coordinates/1)
 
   defp trim(value) when is_binary(value) do
     case String.trim(value) do

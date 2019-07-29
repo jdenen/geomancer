@@ -43,25 +43,23 @@ defmodule Geomancer.Shapefile do
 
   defp parse_geometry(shapes) do
     shapes
-    |> Enum.reduce([], &shape_reducer/2)
-    |> Enum.reverse()
+    |> Stream.map(&shape_mapper/1)
+    |> Stream.reject(&is_nil/1)
   end
 
-  defp shape_reducer({%{x: x, y: y}, values}, acc) do
-    [%{x: x, y: y, values: values} | acc]
+  defp shape_mapper({%{x: x, y: y}, values}) do
+    %{x: x, y: y, values: values}
   end
 
-  defp shape_reducer({%{bbox: bbox, points: points}, values}, acc) do
-    map = %{
+  defp shape_mapper({%{bbox: bbox, points: points}, values}) do
+    %{
       bbox: [bbox.xmin, bbox.ymin, bbox.xmax, bbox.ymax],
       points: points,
       values: values
     }
-
-    [map | acc]
   end
 
-  defp shape_reducer(_, acc), do: acc
+  defp shape_mapper(_), do: nil
 
   defp new(name, type, bbox, dbf, geometry) do
     struct = %__MODULE__{
@@ -69,7 +67,7 @@ defmodule Geomancer.Shapefile do
       type: type,
       bbox: bbox,
       dbf: dbf,
-      geometry: geometry
+      geometry: Enum.into(geometry, [])
     }
 
     {:ok, struct}
