@@ -20,7 +20,7 @@ defmodule Geomancer.GeoJson do
   @impl Geomancer
   def convert(input_path) do
     case Path.extname(input_path) do
-      ".zip" ->
+      ext when ext in [".zip", ".shp", ".shapefile"] ->
         input_path
         |> Geomancer.Shapefile.read()
         |> to_geo_json()

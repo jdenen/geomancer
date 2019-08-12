@@ -15,6 +15,14 @@ defmodule Geomancer.GeoJsonTest do
       assert converted_map == fixture_map
     end
 
+    test "recognizes multiple Shapefile extensions" do
+      assert {_, shapefile} = Geomancer.GeoJson.convert("foo.shapefile")
+      assert {_, shp} = Geomancer.GeoJson.convert("bar.shp")
+
+      assert String.contains?(shapefile, "Shapefile")
+      assert String.contains?(shp, "Shapefile")
+    end
+
     test "converts Shapefile polygons to valid GeoJson" do
       fixture_map = fixture("polygons")
 
