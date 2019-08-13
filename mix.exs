@@ -49,5 +49,4 @@ defmodule Geomancer.MixProject do
   defp description() do
     "A library to convert geospatial data from format-to-format: Shapefile, KML, CSV, GeoJSON, etc."
   end
-
 end
