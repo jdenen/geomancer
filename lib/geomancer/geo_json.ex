@@ -33,11 +33,8 @@ defmodule Geomancer.GeoJson do
   end
 
   @impl Geomancer
-  def read(input_path) do
-    case File.read(input_path) do
-      {:ok, contents} -> Jason.decode(contents)
-      {:error, reason} -> {:error, "Cannot open file '#{input_path}': #{reason}"}
-    end
+  def read(input) do
+    Jason.decode(input)
   end
 
   @impl Geomancer

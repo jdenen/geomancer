@@ -45,13 +45,13 @@ defmodule Geomancer.GeoJsonTest do
 
   describe "read/1" do
     test "returns ok tuple with map contents" do
-      assert {:ok, contents} = GeoJson.read("test/support/point.geojson")
-      assert is_map(contents)
+      contents = File.read!("test/support/point.geojson")
+      assert {:ok, geo_json} = GeoJson.read(contents)
+      assert is_map(geo_json)
     end
 
-    test "returns error tuple if file cannot be read" do
-      assert {:error, reason} = GeoJson.read("foo.bar")
-      assert reason == "Cannot open file 'foo.bar': enoent"
+    test "returns error tuple if GeoJSON cannot be parsed" do
+      assert {:error, _} = GeoJson.read("invalid")
     end
   end
 
