@@ -24,7 +24,7 @@ defmodule Geomancer.GeoJson do
 
   def convert(input, :shapefile) do
     input
-    |> Shapefile.read()
+    |> Shapefile.parse()
     |> to_geo_json()
   end
 
@@ -33,7 +33,7 @@ defmodule Geomancer.GeoJson do
   end
 
   @impl Geomancer
-  def read(input) do
+  def parse(input) do
     Jason.decode(input)
   end
 

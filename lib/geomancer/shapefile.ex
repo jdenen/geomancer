@@ -24,7 +24,7 @@ defmodule Geomancer.Shapefile do
         }
 
   @impl Geomancer
-  def read(input_path) do
+  def parse(input_path) do
     with [{name, _, shapes}] <- Exshape.from_zip(input_path),
          {type, bbox, columns} <- parse_headers(shapes),
          geometries <- parse_geometry(shapes) do

@@ -9,7 +9,7 @@ defmodule Geomancer do
   @type reason() :: String.t()
 
   @callback convert(input(), source_format()) :: {:ok, conversion()} | {:error, reason()}
-  @callback read(input()) :: {:ok, geo_struct()} | {:error, reason()}
+  @callback parse(input()) :: {:ok, geo_struct()} | {:error, reason()}
   @callback format() :: String.t()
 
   defmacro __using__(_) do
@@ -20,11 +20,11 @@ defmodule Geomancer do
         {:error, "Conversion from #{source_format} to #{format()} is unsupported"}
       end
 
-      def read(_) do
-        {:error, "Reading #{format()} is unsupported"}
+      def parse(_) do
+        {:error, "Parsing #{format()} is unsupported"}
       end
 
-      defoverridable convert: 2, read: 1
+      defoverridable convert: 2, parse: 1
     end
   end
 

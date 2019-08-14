@@ -2,6 +2,7 @@ defmodule Geomancer.ShapefileTest do
   use ExUnit.Case
   use Placebo
   doctest Geomancer.Shapefile
+
   alias Geomancer.Shapefile
 
   @bbox %{xmin: "x1", xmax: "x2", ymin: "y1", ymax: "y2"}
@@ -16,7 +17,7 @@ defmodule Geomancer.ShapefileTest do
     }
   }
 
-  describe "read/1" do
+  describe "parse/1" do
     test "returns ok tuple with structued Shapefile data" do
       pt1 = {%{x: 0.0, y: 1.0}, [1, "a"]}
       pt2 = {%{x: 2.0, y: 3.0}, [2, "b"]}
@@ -34,23 +35,22 @@ defmodule Geomancer.ShapefileTest do
         ]
       }
 
-      assert {:ok, actual} = Shapefile.read("ignore.zip")
+      assert {:ok, actual} = Shapefile.parse("ignore.zip")
       assert actual == expected
     end
 
     test "returns error tuple with reason if Shapefile can't be parsed" do
-      assert {:error, "Cannot parse Shapefile 'foo.zip': enoent"} =
-               Geomancer.Shapefile.read("foo.zip")
+      assert {:error, "Cannot parse Shapefile 'foo.zip': enoent"} = Shapefile.parse("foo.zip")
 
       assert {:error, "Cannot parse Shapefile 'test/support/point.geojson': einval"} =
-               Geomancer.Shapefile.read("test/support/point.geojson")
+               Shapefile.parse("test/support/point.geojson")
     end
   end
 
   describe "convert/2" do
     test "is currently unsupported" do
       assert {:error, "Conversion from any to Shapefile is unsupported"} =
-               Geomancer.Shapefile.convert("foo.bar", :any)
+               Shapefile.convert("foo.bar", :any)
     end
   end
 end
