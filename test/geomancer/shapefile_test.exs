@@ -47,10 +47,10 @@ defmodule Geomancer.ShapefileTest do
     end
   end
 
-  describe "convert/1" do
+  describe "convert/2" do
     test "is currently unsupported" do
-      assert {:error, "Conversion to Shapefile is unsupported"} =
-               Geomancer.Shapefile.convert("foo.bar")
+      assert {:error, "Conversion from any to Shapefile is unsupported"} =
+               Geomancer.Shapefile.convert("foo.bar", :any)
     end
   end
 end

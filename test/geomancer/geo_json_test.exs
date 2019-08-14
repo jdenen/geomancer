@@ -2,13 +2,15 @@ defmodule Geomancer.GeoJsonTest do
   use ExUnit.Case
   doctest Geomancer.GeoJson
 
-  describe "convert/1" do
+  alias Geomancer.GeoJson
+
+  describe "convert/2" do
     test "converts Shapefile points to valid GeoJson" do
       fixture_map = fixture("point")
 
       converted_map =
         "test/support/point.zip"
-        |> Geomancer.GeoJson.convert()
+        |> GeoJson.convert()
         |> elem(1)
         |> Jason.decode!()
 
@@ -16,8 +18,8 @@ defmodule Geomancer.GeoJsonTest do
     end
 
     test "recognizes multiple Shapefile extensions" do
-      assert {_, shapefile} = Geomancer.GeoJson.convert("foo.shapefile")
-      assert {_, shp} = Geomancer.GeoJson.convert("bar.shp")
+      assert {_, shapefile} = GeoJson.convert("foo.shapefile")
+      assert {_, shp} = GeoJson.convert("bar.shp")
 
       assert String.contains?(shapefile, "Shapefile")
       assert String.contains?(shp, "Shapefile")
@@ -28,7 +30,7 @@ defmodule Geomancer.GeoJsonTest do
 
       converted_map =
         "test/support/polygons.zip"
-        |> Geomancer.GeoJson.convert()
+        |> GeoJson.convert()
         |> elem(1)
         |> Jason.decode!()
 
@@ -36,19 +38,26 @@ defmodule Geomancer.GeoJsonTest do
     end
 
     test "returns error tuple for unsupported file formats" do
-      assert {:error, "Unsupported format: .bar"} = Geomancer.GeoJson.convert("foo.bar")
+      assert {:error, "Conversion from bar to GeoJSON is unsupported"} =
+               GeoJson.convert("foo", :bar)
     end
   end
 
   describe "read/1" do
     test "returns ok tuple with map contents" do
-      assert {:ok, contents} = Geomancer.GeoJson.read("test/support/point.geojson")
+      assert {:ok, contents} = GeoJson.read("test/support/point.geojson")
       assert is_map(contents)
     end
 
     test "returns error tuple if file cannot be read" do
-      assert {:error, reason} = Geomancer.GeoJson.read("foo.bar")
+      assert {:error, reason} = GeoJson.read("foo.bar")
       assert reason == "Cannot open file 'foo.bar': enoent"
+    end
+  end
+
+  describe "format/0" do
+    test "returns format name" do
+      assert GeoJson.format() == "GeoJSON"
     end
   end
 

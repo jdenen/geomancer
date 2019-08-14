@@ -1,9 +1,11 @@
 defmodule Geomancer.GeoJson do
   @moduledoc false
   use Geomancer
+
+  alias Geomancer.Shapefile
   alias Geomancer.GeoJson.FeatureSet
 
-  @type geo_json :: String.t()
+  @type json :: String.t()
   @type t :: %__MODULE__{
           type: String.t(),
           name: String.t(),
@@ -18,16 +20,16 @@ defmodule Geomancer.GeoJson do
             bbox: []
 
   @impl Geomancer
-  def convert(input_path) do
-    case Path.extname(input_path) do
-      ext when ext in [".zip", ".shp", ".shapefile"] ->
-        input_path
-        |> Geomancer.Shapefile.read()
-        |> to_geo_json()
+  def convert(input, source \\ :shapefile)
 
-      ext ->
-        {:error, "Unsupported format: #{ext}"}
-    end
+  def convert(input, :shapefile) do
+    input
+    |> Shapefile.read()
+    |> to_geo_json()
+  end
+
+  def convert(_, source) do
+    {:error, "Conversion from #{source} to GeoJSON is unsupported"}
   end
 
   @impl Geomancer
@@ -42,7 +44,7 @@ defmodule Geomancer.GeoJson do
   def format(), do: "GeoJSON"
 
   @spec to_geo_json({:ok, struct()} | {:error, String.t()}) ::
-          {:ok, geo_json()} | {:error, String.t()}
+          {:ok, json()} | {:error, String.t()}
   defp to_geo_json({:ok, source}) do
     source
     |> new()
