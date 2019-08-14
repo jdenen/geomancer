@@ -27,6 +27,7 @@ defmodule Geomancer.MixProject do
     [
       {:exshape, "~> 2.2"},
       {:jason, "~> 1.1"},
+      {:geo, "~> 3.2"},
       {:credo, "~> 0.10", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 1.0.0-rc.6", only: [:dev], runtime: false},
       {:placebo, "~> 1.2", only: [:dev, :test]},

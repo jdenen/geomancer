@@ -6,12 +6,7 @@ defmodule Geomancer.GeoJson do
   alias Geomancer.GeoJson.FeatureSet
 
   @type json :: String.t()
-  @type t :: %__MODULE__{
-          type: String.t(),
-          name: String.t(),
-          features: FeatureSet.t(),
-          bbox: [float()]
-        }
+  @type t :: map()
 
   @derive Jason.Encoder
   defstruct type: "FeatureCollection",
@@ -50,7 +45,6 @@ defmodule Geomancer.GeoJson do
 
   defp to_geo_json({:error, _} = error), do: error
 
-  @spec new(Geomancer.geo_struct()) :: t()
   defp new(%{bbox: bbox} = source) do
     features =
       source
